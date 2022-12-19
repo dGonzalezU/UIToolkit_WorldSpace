@@ -125,12 +125,18 @@ namespace Katas.Experimental
             _renderTexture = renderTexturePrefab;
         }
 
-		private void OnDrawGizmosSelected()
+		/// <summary>
+		/// Provides a Visual of the panel that will be instanced once the application enters runtime. The Cyan frame marks the forward
+		/// Cubes do not scale with the object scale since the UIDocument is instanced with pixels per meter
+		/// </summary>
+		private void OnDrawGizmos()
 		{
-			Gizmos.color = new Color(0.2f,0.5f,1.0f,0.35f);
-			Gizmos.DrawCube(transform.position, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.15f));
+			Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+			Gizmos.matrix = rotationMatrix;
 			Gizmos.color = Color.black;
-			Gizmos.DrawWireCube(transform.position, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.15f));
+			Gizmos.DrawWireCube(Vector3.zero, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.1f));
+			Gizmos.color = Color.cyan;
+			Gizmos.DrawWireCube(-Vector3.forward * 0.05f, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.01f));
 		}
 
         /// <summary>
