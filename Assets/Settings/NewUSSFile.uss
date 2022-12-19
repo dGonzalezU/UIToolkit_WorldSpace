@@ -1,0 +1,31 @@
+VisualElement {
+}
+
+Button {
+    color: rgba(98, 0, 255, 255);
+}
+
+Button:hover {
+    background-color: green;
+}
+
+Button:selected {
+    background-color: yellowgreen;
+}
+
+Button:inactive{
+	background-color:aquamarine;
+}
+
+Button:focus{
+	background-color:pink;
+}
+
+Button:disabled{
+	background-color:orange;
+	
+}
+
+Label {
+    color: rgb(0, 0, 0);
+}

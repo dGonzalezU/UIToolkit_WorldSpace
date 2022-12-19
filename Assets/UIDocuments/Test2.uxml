@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Settings/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=651156175b879194d9a37737e9829e40&amp;type=3#NewUSSFile" />
+    <ui:VisualElement style="width: 100%; height: 100%; align-items: center; justify-content: space-around;">
+        <ui:Label text="Label" display-tooltip-when-elided="true" style="-unity-text-align: middle-center; font-size: 63px;" />
+        <ui:Button text="Button" display-tooltip-when-elided="true" style="width: 193px; height: 118px;" />
+        <ui:Button text="Button" display-tooltip-when-elided="true" style="width: 193px; height: 118px;" />
+        <ui:Button text="Button" display-tooltip-when-elided="true" style="width: 193px; height: 118px;" />
+    </ui:VisualElement>
+</ui:UXML>
