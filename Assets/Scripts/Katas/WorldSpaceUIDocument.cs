@@ -26,6 +26,8 @@ namespace Katas.Experimental
 
         [Tooltip("Some input modules (like the XRUIInputModule from the XR Interaction toolkit package) doesn't send PointerMove events. If you are using such an input module, just set this to true so at least you can properly drag things around.")]
         public bool UseDragEventFix = false;
+
+        private PhysicsRaycaster _raycaser;
         
         public Vector2 PanelSize
         {
@@ -179,9 +181,13 @@ namespace Katas.Experimental
 
             // find the automatically generated PanelEventHandler and PanelRaycaster for this panel and disable the raycaster
             PanelEventHandler[] handlers = FindObjectsOfType<PanelEventHandler>();
+            
+            
 
             foreach (PanelEventHandler handler in handlers)
             {
+                Debug.Log("Event Hanlder: " + handler.transform.name);
+                
                 if (handler.panel == _uiDocument.rootVisualElement.panel)
                 {
                     _panelEventHandler = handler;
@@ -312,6 +318,7 @@ namespace Katas.Experimental
 
                 if (eventCamera != null)
                 {
+                    Debug.Log(("Reference to Event Camera" , eventCamera.transform));
                     // get current event position and create the ray from the event camera
                     Vector3 position = eventData.position;
                     position.z = 1.0f;
@@ -328,7 +335,7 @@ namespace Katas.Experimental
                         position.x += 0.5f; position.y -= 0.5f;
                         position = Vector3.Scale(position, new Vector3(_panelWidth, _panelHeight, 1.0f));
                         position.y += Screen.height;
-                        // print(new Vector2(position.x, Screen.height - position.y)); // print actual computed position in panel UIToolkit coords
+                        print(new Vector2(position.x, Screen.height - position.y)); // print actual computed position in panel UIToolkit coords
 
                         // update the event data with the new calculated position
                         eventData.position = position;
