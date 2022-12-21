@@ -3,10 +3,14 @@ VisualElement {
 
 Button {
     color: rgba(98, 0, 255, 255);
+	-unity-font-style: bold;
+	font-size : 20px;
 }
 
 Button:hover {
-    background-color: green;
+	background-color: green;
+	color: rgba(0, 0, 0, 255);
+	font-size : 30px;
 }
 
 Button:selected {
