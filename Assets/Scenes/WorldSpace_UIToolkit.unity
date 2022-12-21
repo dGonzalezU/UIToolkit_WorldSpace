@@ -1264,7 +1264,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1670566579}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.003, y: 0.852, z: 1.461}
+  m_LocalPosition: {x: 0.003, y: 1.48, z: 1.461}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1283,11 +1283,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e465fb5081ae2141af611d97cdeeaf8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _panelWidth: 720
-  _panelHeight: 818
-  _panelScale: 2.53
-  _pixelsPerUnit: 818
-  _visualTreeAsset: {fileID: 9197481963319205126, guid: ebf659a01bbd8fb478ca3f423895ca0c, type: 3}
+  _panelWidth: 900
+  _panelHeight: 600
+  _panelScale: 20
+  _pixelsPerUnit: 409
+  _visualTreeAsset: {fileID: 9197481963319205126, guid: 89724c17d9a8e2f42a7bfeda045ddd86, type: 3}
   _panelSettingsPrefab: {fileID: 11400000, guid: 4e2ca977a9f38b74cb1093597cf80730, type: 2}
   _renderTexturePrefab: {fileID: 8400000, guid: 83a0f5e18bb3a4140baac628d6df2d89, type: 2}
   UseDragEventFix: 0
