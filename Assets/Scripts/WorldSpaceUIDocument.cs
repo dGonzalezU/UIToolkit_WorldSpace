@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace Katas.Experimental
 {
-	public class WorldSpaceUIDocument : MonoBehaviour, IPointerMoveHandler, IPointerUpHandler, IPointerDownHandler,
+    public class WorldSpaceUIDocument : MonoBehaviour, IPointerMoveHandler, IPointerUpHandler, IPointerDownHandler,
         ISubmitHandler, ICancelHandler, IMoveHandler, IScrollHandler, ISelectHandler, IDeselectHandler, IDragHandler
     {
         [Tooltip("Width of the panel in pixels. The RenderTexture used to render the panel will have this width.")]
@@ -124,20 +124,6 @@ namespace Katas.Experimental
             _panelSettingsPrefab = panelSettingsPrefab;
             _renderTexture = renderTexturePrefab;
         }
-
-		/// <summary>
-		/// Provides a Visual of the panel that will be instanced once the application enters runtime. The Cyan frame marks the forward
-		/// Cubes do not scale with the object scale since the UIDocument is instanced with pixels per meter
-		/// </summary>
-		private void OnDrawGizmos()
-		{
-			Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-			Gizmos.matrix = rotationMatrix;
-			Gizmos.color = Color.black;
-			Gizmos.DrawWireCube(Vector3.zero, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.1f));
-			Gizmos.color = Color.cyan;
-			Gizmos.DrawWireCube(-Vector3.forward * 0.05f, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.01f));
-		}
 
         /// <summary>
         /// Rebuilds the panel by destroy current assets and generating new ones based on the configuration.
