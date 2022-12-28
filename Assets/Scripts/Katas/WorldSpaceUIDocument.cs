@@ -18,9 +18,9 @@ namespace Katas.Experimental
         [Tooltip("Pixels per world units, it will the termine the real panel size in the world based on panel pixel width and height.")]
         [SerializeField] protected float _pixelsPerUnit = 1280.0f;
         [Tooltip("Visual tree element object of this panel.")]
-        [SerializeField] protected VisualTreeAsset _visualTreeAsset;
+        [SerializeField] public VisualTreeAsset _visualTreeAsset;
         [Tooltip("PanelSettings that will be used to create a new instance for this panel.")]
-        [SerializeField] protected PanelSettings _panelSettingsPrefab;
+        [SerializeField] public PanelSettings _panelSettingsPrefab;
         [Tooltip("RenderTexture that will be used to create a new instance for this panel.")]
         [SerializeField] protected RenderTexture _renderTexturePrefab;
 
