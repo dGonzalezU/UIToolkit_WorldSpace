@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
+using System;
 
 namespace Katas.Experimental
 {
@@ -74,12 +75,14 @@ namespace Katas.Experimental
         protected PanelEventHandler _panelEventHandler;
         
         // runtime rebuildable stuff
-        protected UIDocument _uiDocument;
+        public UIDocument _uiDocument;
         protected PanelSettings _panelSettings;
         protected RenderTexture _renderTexture;
         protected Material _material;
 
-        void Awake ()
+		public event Action OnPanelBuilt;
+
+		virtual protected void Awake ()
         {
             PixelsPerUnit = _pixelsPerUnit;
 
@@ -106,7 +109,7 @@ namespace Katas.Experimental
             Destroy(quadGo);
         }
 
-        void Start()
+		virtual protected void Start()
         {
             RebuildPanel();
         }
@@ -198,6 +201,8 @@ namespace Katas.Experimental
                     break;
                 }
             }
+
+			OnPanelBuilt?.Invoke();
         }
 
         protected void RefreshPanelSize ()

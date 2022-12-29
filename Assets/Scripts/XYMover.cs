@@ -8,12 +8,8 @@ public class XYMover : MonoBehaviour
 	[SerializeField]
 	private float _speed = 10f;
 
-    void Start()
-    {
-        
-    }
-
     void Update()
+	
     {
 		transform.position += new Vector3
 		(

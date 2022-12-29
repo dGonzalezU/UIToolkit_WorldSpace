@@ -6,10 +6,9 @@ using UnityEngine.UIElements;
 using Katas.Experimental;
 
 
-public class ChangeText : MonoBehaviour
+public class ChangeText : WorldSpaceUIDocument
 {
 
-	UIDocument _document;
 	VisualElement rootVisualElement;
 
 	Button _redButton;
@@ -18,21 +17,16 @@ public class ChangeText : MonoBehaviour
 
 	Label _resultTabel;
 
-	WorldSpaceUIDocument _uiDoc;
-
-	private void Awake()
+	protected override void Awake()
 	{
-		_document = GetComponent<UIDocument>();
-		if(!_document){
-			_uiDoc = GetComponent<WorldSpaceUIDocument>();
-			// _document = 
-		}
-
-		rootVisualElement = _document.rootVisualElement;
+		base.Awake();
+		OnPanelBuilt += SetupPanel;
 	}
 
-	private void Start()
+	private void SetupPanel()
 	{
+		Debug.Log($"Setting up Panel by sus", this);
+		rootVisualElement = _uiDocument.rootVisualElement;
 		GetReferences();
 		SetEvents();
 	}
