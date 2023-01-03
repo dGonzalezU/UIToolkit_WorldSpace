@@ -173,8 +173,7 @@ namespace Katas.Experimental
 
             // find the automatically generated PanelEventHandler and PanelRaycaster for this panel and disable the raycaster
             PanelEventHandler[] handlers = FindObjectsOfType<PanelEventHandler>();
-            
-            
+                   
 
             foreach (PanelEventHandler handler in handlers)
             {
@@ -241,7 +240,11 @@ namespace Katas.Experimental
 
 			GameObject quadGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
             _meshFilter.sharedMesh = quadGo.GetComponent<MeshFilter>().sharedMesh;
+#if UNITY_EDITOR
+			DestroyImmediate(quadGo);
+#else
             Destroy(quadGo);
+#endif
 		}
 
         void OnDestroy ()
@@ -338,7 +341,6 @@ namespace Katas.Experimental
 
                 if (eventCamera != null)
                 {
-                    Debug.Log(("Reference to Event Camera" , eventCamera.transform));
                     // get current event position and create the ray from the event camera
                     Vector3 position = eventData.position;
                     position.z = 1.0f;
@@ -355,7 +357,7 @@ namespace Katas.Experimental
                         position.x += 0.5f; position.y -= 0.5f;
                         position = Vector3.Scale(position, new Vector3(_panelWidth, _panelHeight, 1.0f));
                         position.y += Screen.height;
-                        print(new Vector2(position.x, Screen.height - position.y)); // print actual computed position in panel UIToolkit coords
+                        // print(new Vector2(position.x, Screen.height - position.y)); // print actual computed position in panel UIToolkit coords
 
                         // update the event data with the new calculated position
                         eventData.position = position;
