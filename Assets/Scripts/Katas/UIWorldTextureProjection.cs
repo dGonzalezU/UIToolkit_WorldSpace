@@ -2,8 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class UITextureProjection : MonoBehaviour{
-
+public class UIWorldTextureProjection : MonoBehaviour{
+	
     public Camera m_TargetCamera;
 
 	/// <summary>
@@ -12,6 +12,7 @@ public class UITextureProjection : MonoBehaviour{
 	/// <remarks>
 	/// If none is set, it will be initialized with Camera.main
 	/// </remarks>
+	
 	public Camera targetCamera
 	{
 		get
@@ -27,6 +28,9 @@ public class UITextureProjection : MonoBehaviour{
 
 	private Func<Vector2, Vector2> m_DefaultRenderTextureScreenTranslation;
 
+	[SerializeField]
+	private UIXRCursor[] _cursorObjects;
+
 	void OnEnable()
 	{
 		if (TargetPanel != null)
@@ -38,6 +42,8 @@ public class UITextureProjection : MonoBehaviour{
 
 			TargetPanel.SetScreenToPanelSpaceFunction(m_DefaultRenderTextureScreenTranslation);
 		}
+
+		_cursorObjects = FindObjectsOfType<UIXRCursor>();
 	}
 
 	void OnDisable()
@@ -61,27 +67,35 @@ public class UITextureProjection : MonoBehaviour{
 		var invalidPosition = new Vector2(float.NaN, float.NaN);
 
 		screenPosition.y = Screen.height - screenPosition.y;
-		var cameraRay = targetCamera.ScreenPointToRay(screenPosition);
+		// var cameraRay = targetCamera.ScreenPointToRay(screenPosition);
 
 		RaycastHit hit;
-		if (!Physics.Raycast(cameraRay, out hit))
-		{
+		MeshRenderer rend = null;
+		bool hasHitThisFrame = false;
+		// foreach(UIXRCursor cursor in _cursorObjects){
+			Ray cursorRay = new Ray(_cursorObjects[0].Position, _cursorObjects[0].Direction);
+			Debug.DrawRay(_cursorObjects[0].Position,_cursorObjects[0].Direction, Color.blue,5f);
+			if (Physics.Raycast(cursorRay, out hit))
+			{
+				Debug.Log($"Cursor Hit {hit.transform.name}", hit.transform);
+				hasHitThisFrame |= true;
+				rend = hit.transform.GetComponent<MeshRenderer>();
+			}
+		// }
+		if(!hasHitThisFrame){
 			return invalidPosition;
 		}
 
 		var targetTexture = TargetPanel.targetTexture;
-		MeshRenderer rend = hit.transform.GetComponent<MeshRenderer>();
 
 		if (rend == null || rend.sharedMaterial.mainTexture != targetTexture)
 		{
 			return invalidPosition;
 		}
 
+
 		Vector2 pixelUV = hit.textureCoord;
-
-		//since y screen coordinates are usually inverted, we need to flip them
 		pixelUV.y = 1 - pixelUV.y;
-
 		pixelUV.x *= targetTexture.width;
 		pixelUV.y *= targetTexture.height;
 

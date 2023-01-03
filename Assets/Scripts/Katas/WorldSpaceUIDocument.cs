@@ -3,12 +3,18 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
+using System;
 
 namespace Katas.Experimental
 {
-    public class WorldSpaceUIDocument : MonoBehaviour, IPointerMoveHandler, IPointerUpHandler, IPointerDownHandler,
+
+	[RequireComponent(typeof(MeshFilter))]
+	[RequireComponent(typeof(MeshRenderer))]
+	[RequireComponent(typeof(BoxCollider))]
+	public class WorldSpaceUIDocument : MonoBehaviour, IPointerMoveHandler, IPointerUpHandler, IPointerDownHandler,
         ISubmitHandler, ICancelHandler, IMoveHandler, IScrollHandler, ISelectHandler, IDeselectHandler, IDragHandler
     {
+		[Header("World Space Size Values")]
         [Tooltip("Width of the panel in pixels. The RenderTexture used to render the panel will have this width.")]
         [SerializeField] protected int _panelWidth = 1280;
         [Tooltip("Height of the panel in pixels. The RenderTexture used to render the panel will have this height.")]
@@ -17,15 +23,19 @@ namespace Katas.Experimental
         [SerializeField] protected float _panelScale = 1.0f;
         [Tooltip("Pixels per world units, it will the termine the real panel size in the world based on panel pixel width and height.")]
         [SerializeField] protected float _pixelsPerUnit = 1280.0f;
+		[Space]
+		[Header("UI Toolkit Document Values")]
         [Tooltip("Visual tree element object of this panel.")]
-        [SerializeField] protected VisualTreeAsset _visualTreeAsset;
+        [SerializeField] public VisualTreeAsset _visualTreeAsset;
         [Tooltip("PanelSettings that will be used to create a new instance for this panel.")]
-        [SerializeField] protected PanelSettings _panelSettingsPrefab;
+        [SerializeField] public PanelSettings _panelSettingsPrefab;
         [Tooltip("RenderTexture that will be used to create a new instance for this panel.")]
         [SerializeField] protected RenderTexture _renderTexturePrefab;
 
         [Tooltip("Some input modules (like the XRUIInputModule from the XR Interaction toolkit package) doesn't send PointerMove events. If you are using such an input module, just set this to true so at least you can properly drag things around.")]
         public bool UseDragEventFix = false;
+
+        private PhysicsRaycaster _raycaser;
         
         public Vector2 PanelSize
         {
@@ -69,42 +79,26 @@ namespace Katas.Experimental
         public RenderTexture RenderTexturePrefab { get => _renderTexturePrefab; set { _renderTexturePrefab = value; RebuildPanel(); } }
         
         protected MeshRenderer _meshRenderer;
+		protected MeshFilter _meshFilter;
+		protected BoxCollider _boxCollider;
         protected PanelEventHandler _panelEventHandler;
-        
-        // runtime rebuildable stuff
+
+
+		//V2.0, making this a required component
         protected UIDocument _uiDocument;
         protected PanelSettings _panelSettings;
-        protected RenderTexture _renderTexture;
+        protected RenderTexture _outputTexture;
         protected Material _material;
 
-        void Awake ()
+		public event Action OnPanelBuilt;
+
+		virtual protected void Awake ()
         {
             PixelsPerUnit = _pixelsPerUnit;
-
-            // dynamically a MeshFilter, MeshRenderer and BoxCollider
-            MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
-            
-            _meshRenderer = gameObject.AddComponent<MeshRenderer>();
-            _meshRenderer.sharedMaterial = null;
-            _meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
-            _meshRenderer.receiveShadows = false;
-            _meshRenderer.allowOcclusionWhenDynamic = false;
-            _meshRenderer.lightProbeUsage = LightProbeUsage.Off;
-            _meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-            _meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-
-            BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
-            Vector3 size = boxCollider.size;
-            size.z = 0;
-            boxCollider.size = size;
-
-            // set the primitive quad mesh to the mesh filter
-            GameObject quadGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            meshFilter.sharedMesh = quadGo.GetComponent<MeshFilter>().sharedMesh;
-            Destroy(quadGo);
+			SetReferences();
         }
 
-        void Start()
+		virtual protected void Start()
         {
             RebuildPanel();
         }
@@ -122,91 +116,7 @@ namespace Katas.Experimental
             _pixelsPerUnit = pixelsPerUnit;
             _visualTreeAsset = visualTreeAsset;
             _panelSettingsPrefab = panelSettingsPrefab;
-            _renderTexture = renderTexturePrefab;
-        }
-
-        /// <summary>
-        /// Rebuilds the panel by destroy current assets and generating new ones based on the configuration.
-        /// </summary>
-        public void RebuildPanel ()
-        {
-            DestroyGeneratedAssets();
-
-            // generate render texture
-            RenderTextureDescriptor textureDescriptor = _renderTexturePrefab.descriptor;
-            textureDescriptor.width = _panelWidth;
-            textureDescriptor.height = _panelHeight;
-            _renderTexture = new RenderTexture(textureDescriptor);
-
-            // generate panel settings
-            _panelSettings = Instantiate(_panelSettingsPrefab);
-            _panelSettings.targetTexture = _renderTexture;
-            _panelSettings.clearColor = true; // ConstantPixelSize and clearColor are mandatory configs
-            _panelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
-            _panelSettings.scale = _panelScale;
-            _renderTexture.name = $"{name} - RenderTexture";
-            _panelSettings.name = $"{name} - PanelSettings";
-
-            // generate UIDocument
-            _uiDocument = gameObject.AddComponent<UIDocument>();
-            _uiDocument.panelSettings = _panelSettings;
-            _uiDocument.visualTreeAsset = _visualTreeAsset;
-
-            // generate material
-            if (_panelSettings.colorClearValue.a < 1.0f)
-                _material = new Material(Shader.Find("Unlit/Transparent"));
-            else
-                _material = new Material(Shader.Find("Unlit/Texture"));
-            
-            _material.SetTexture("_MainTex", _renderTexture);
-            _meshRenderer.sharedMaterial = _material;
-
-            RefreshPanelSize();
-
-            // find the automatically generated PanelEventHandler and PanelRaycaster for this panel and disable the raycaster
-            PanelEventHandler[] handlers = FindObjectsOfType<PanelEventHandler>();
-
-            foreach (PanelEventHandler handler in handlers)
-            {
-                if (handler.panel == _uiDocument.rootVisualElement.panel)
-                {
-                    _panelEventHandler = handler;
-                    PanelRaycaster panelRaycaster = _panelEventHandler.GetComponent<PanelRaycaster>();
-                    if (panelRaycaster != null)
-                        panelRaycaster.enabled = false;
-                    
-                    break;
-                }
-            }
-        }
-
-        protected void RefreshPanelSize ()
-        {
-            if (_renderTexture != null && (_renderTexture.width != _panelWidth || _renderTexture.height != _panelHeight))
-            {
-                _renderTexture.Release();
-                _renderTexture.width = _panelWidth;
-                _renderTexture.height = _panelHeight;
-                _renderTexture.Create();
-
-                if (_uiDocument != null)
-                    _uiDocument.rootVisualElement?.MarkDirtyRepaint();
-            }
-
-            transform.localScale = new Vector3(_panelWidth / _pixelsPerUnit, _panelHeight / _pixelsPerUnit, 1.0f);
-        }
-
-        protected void DestroyGeneratedAssets ()
-        {
-            if (_uiDocument) Destroy(_uiDocument);
-            if (_renderTexture) Destroy(_renderTexture);
-            if (_panelSettings) Destroy(_panelSettings);
-            if (_material) Destroy(_material);
-        }
-
-        void OnDestroy ()
-        {
-            DestroyGeneratedAssets();
+            _outputTexture = renderTexturePrefab;
         }
 
 		/// <summary>
@@ -222,6 +132,122 @@ namespace Katas.Experimental
 			Gizmos.color = Color.cyan;
 			Gizmos.DrawWireCube(-Vector3.forward * 0.05f, new Vector3(_panelWidth/PixelsPerUnit, _panelHeight/PixelsPerUnit,0.01f));
 		}
+
+        /// <summary>
+        /// Rebuilds the panel by destroy current assets and generating new ones based on the configuration.
+        /// </summary>
+        public void RebuildPanel ()
+        {
+            DestroyGeneratedAssets();
+
+            // generate render texture
+            RenderTextureDescriptor textureDescriptor = _renderTexturePrefab.descriptor;
+            textureDescriptor.width = _panelWidth;
+            textureDescriptor.height = _panelHeight;
+            _outputTexture = new RenderTexture(textureDescriptor);
+
+            // generate panel settings
+            _panelSettings = Instantiate(_panelSettingsPrefab);
+            _panelSettings.targetTexture = _outputTexture;
+            _panelSettings.clearColor = true; // ConstantPixelSize and clearColor are mandatory configs
+            _panelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
+            _panelSettings.scale = _panelScale;
+            _outputTexture.name = $"{name} - RenderTexture";
+            _panelSettings.name = $"{name} - PanelSettings";
+
+            // generate UIDocument
+            _uiDocument = gameObject.AddComponent<UIDocument>();
+            _uiDocument.panelSettings = _panelSettings;
+            _uiDocument.visualTreeAsset = _visualTreeAsset;
+
+            // generate material
+            if (_panelSettings.colorClearValue.a < 1.0f)
+                _material = new Material(Shader.Find("Unlit/Transparent"));
+            else
+                _material = new Material(Shader.Find("Unlit/Texture"));
+            
+            _material.SetTexture("_MainTex", _outputTexture);
+            _meshRenderer.sharedMaterial = _material;
+
+            RefreshPanelSize();
+
+            // find the automatically generated PanelEventHandler and PanelRaycaster for this panel and disable the raycaster
+            PanelEventHandler[] handlers = FindObjectsOfType<PanelEventHandler>();
+            
+            
+
+            foreach (PanelEventHandler handler in handlers)
+            {
+                
+                if (handler.panel == _uiDocument.rootVisualElement.panel)
+                {
+                    _panelEventHandler = handler;
+                    PanelRaycaster panelRaycaster = _panelEventHandler.GetComponent<PanelRaycaster>();
+                    if (panelRaycaster != null)
+                        panelRaycaster.enabled = false;
+                    
+                    break;
+                }
+            }
+
+			OnPanelBuilt?.Invoke();
+        }
+
+        protected void RefreshPanelSize ()
+        {
+            if (_outputTexture != null && (_outputTexture.width != _panelWidth || _outputTexture.height != _panelHeight))
+            {
+                _outputTexture.Release();
+                _outputTexture.width = _panelWidth;
+                _outputTexture.height = _panelHeight;
+                _outputTexture.Create();
+
+                if (_uiDocument != null)
+                    _uiDocument.rootVisualElement?.MarkDirtyRepaint();
+            }
+
+            transform.localScale = new Vector3(_panelWidth / _pixelsPerUnit, _panelHeight / _pixelsPerUnit, 1.0f);
+        }
+
+        protected void DestroyGeneratedAssets ()
+        {
+            if (_uiDocument) Destroy(_uiDocument);
+            if (_outputTexture) Destroy(_outputTexture);
+            if (_panelSettings) Destroy(_panelSettings);
+            if (_material) Destroy(_material);
+        }
+
+		private void SetReferences(){
+			_meshRenderer = GetComponent<MeshRenderer>();
+			_meshFilter = GetComponent<MeshFilter>();
+			_boxCollider = GetComponent<BoxCollider>();
+			
+		}
+
+		private void Reset(){
+			SetReferences();
+            
+            _meshRenderer.sharedMaterial = null;
+            _meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            _meshRenderer.receiveShadows = false;
+            _meshRenderer.allowOcclusionWhenDynamic = false;
+            _meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+            _meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            _meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+
+            Vector3 size = _boxCollider.size;
+            size.z = 0;
+            _boxCollider.size = size;
+
+			GameObject quadGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            _meshFilter.sharedMesh = quadGo.GetComponent<MeshFilter>().sharedMesh;
+            Destroy(quadGo);
+		}
+
+        void OnDestroy ()
+        {
+            DestroyGeneratedAssets();
+        }
 
 #if UNITY_EDITOR
         void OnValidate ()
@@ -312,6 +338,7 @@ namespace Katas.Experimental
 
                 if (eventCamera != null)
                 {
+                    Debug.Log(("Reference to Event Camera" , eventCamera.transform));
                     // get current event position and create the ray from the event camera
                     Vector3 position = eventData.position;
                     position.z = 1.0f;
@@ -328,7 +355,7 @@ namespace Katas.Experimental
                         position.x += 0.5f; position.y -= 0.5f;
                         position = Vector3.Scale(position, new Vector3(_panelWidth, _panelHeight, 1.0f));
                         position.y += Screen.height;
-                        // print(new Vector2(position.x, Screen.height - position.y)); // print actual computed position in panel UIToolkit coords
+                        print(new Vector2(position.x, Screen.height - position.y)); // print actual computed position in panel UIToolkit coords
 
                         // update the event data with the new calculated position
                         eventData.position = position;
