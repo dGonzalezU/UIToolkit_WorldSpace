@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PanelSetting_Duplicated
   m_EditorClassIdentifier: 
   themeUss: {fileID: -4733365628477956816, guid: 7bdf57717457d664dafdc4186d42fcd0, type: 3}
-  m_TargetTexture: {fileID: 8400000, guid: 91041110cfbd6ff468471d7f1e2ea64a, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: a4709c5b61f3d6a469a90d037d30caa3, type: 2}
   m_ScaleMode: 2
   m_Scale: 1
   m_ReferenceDpi: 96
@@ -24,8 +24,8 @@ MonoBehaviour:
   m_SortingOrder: 0
   m_TargetDisplay: 0
   m_ClearDepthStencil: 0
-  m_ClearColor: 1
-  m_ColorClearValue: {r: 0.21032688, g: 0.9056604, b: 0.11595381, a: 1}
+  m_ClearColor: 0
+  m_ColorClearValue: {r: 1, g: 1, b: 1, a: 1}
   m_DynamicAtlasSettings:
     m_MinAtlasSize: 64
     m_MaxAtlasSize: 4096

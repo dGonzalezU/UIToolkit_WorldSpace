@@ -7,9 +7,14 @@ using System;
 
 namespace Katas.Experimental
 {
+
+	[RequireComponent(typeof(MeshFilter))]
+	[RequireComponent(typeof(MeshRenderer))]
+	[RequireComponent(typeof(BoxCollider))]
 	public class WorldSpaceUIDocument : MonoBehaviour, IPointerMoveHandler, IPointerUpHandler, IPointerDownHandler,
         ISubmitHandler, ICancelHandler, IMoveHandler, IScrollHandler, ISelectHandler, IDeselectHandler, IDragHandler
     {
+		[Header("World Space Size Values")]
         [Tooltip("Width of the panel in pixels. The RenderTexture used to render the panel will have this width.")]
         [SerializeField] protected int _panelWidth = 1280;
         [Tooltip("Height of the panel in pixels. The RenderTexture used to render the panel will have this height.")]
@@ -18,6 +23,8 @@ namespace Katas.Experimental
         [SerializeField] protected float _panelScale = 1.0f;
         [Tooltip("Pixels per world units, it will the termine the real panel size in the world based on panel pixel width and height.")]
         [SerializeField] protected float _pixelsPerUnit = 1280.0f;
+		[Space]
+		[Header("UI Toolkit Document Values")]
         [Tooltip("Visual tree element object of this panel.")]
         [SerializeField] public VisualTreeAsset _visualTreeAsset;
         [Tooltip("PanelSettings that will be used to create a new instance for this panel.")]
@@ -72,12 +79,15 @@ namespace Katas.Experimental
         public RenderTexture RenderTexturePrefab { get => _renderTexturePrefab; set { _renderTexturePrefab = value; RebuildPanel(); } }
         
         protected MeshRenderer _meshRenderer;
+		protected MeshFilter _meshFilter;
+		protected BoxCollider _boxCollider;
         protected PanelEventHandler _panelEventHandler;
-        
-        // runtime rebuildable stuff
-        public UIDocument _uiDocument;
+
+
+		//V2.0, making this a required component
+        protected UIDocument _uiDocument;
         protected PanelSettings _panelSettings;
-        protected RenderTexture _renderTexture;
+        protected RenderTexture _outputTexture;
         protected Material _material;
 
 		public event Action OnPanelBuilt;
@@ -85,28 +95,7 @@ namespace Katas.Experimental
 		virtual protected void Awake ()
         {
             PixelsPerUnit = _pixelsPerUnit;
-
-            // dynamically a MeshFilter, MeshRenderer and BoxCollider
-            MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
-            
-            _meshRenderer = gameObject.AddComponent<MeshRenderer>();
-            _meshRenderer.sharedMaterial = null;
-            _meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
-            _meshRenderer.receiveShadows = false;
-            _meshRenderer.allowOcclusionWhenDynamic = false;
-            _meshRenderer.lightProbeUsage = LightProbeUsage.Off;
-            _meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-            _meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-
-            BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
-            Vector3 size = boxCollider.size;
-            size.z = 0;
-            boxCollider.size = size;
-
-            // set the primitive quad mesh to the mesh filter
-            GameObject quadGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            meshFilter.sharedMesh = quadGo.GetComponent<MeshFilter>().sharedMesh;
-            Destroy(quadGo);
+			SetReferences();
         }
 
 		virtual protected void Start()
@@ -127,7 +116,7 @@ namespace Katas.Experimental
             _pixelsPerUnit = pixelsPerUnit;
             _visualTreeAsset = visualTreeAsset;
             _panelSettingsPrefab = panelSettingsPrefab;
-            _renderTexture = renderTexturePrefab;
+            _outputTexture = renderTexturePrefab;
         }
 
 		/// <summary>
@@ -155,15 +144,15 @@ namespace Katas.Experimental
             RenderTextureDescriptor textureDescriptor = _renderTexturePrefab.descriptor;
             textureDescriptor.width = _panelWidth;
             textureDescriptor.height = _panelHeight;
-            _renderTexture = new RenderTexture(textureDescriptor);
+            _outputTexture = new RenderTexture(textureDescriptor);
 
             // generate panel settings
             _panelSettings = Instantiate(_panelSettingsPrefab);
-            _panelSettings.targetTexture = _renderTexture;
+            _panelSettings.targetTexture = _outputTexture;
             _panelSettings.clearColor = true; // ConstantPixelSize and clearColor are mandatory configs
             _panelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
             _panelSettings.scale = _panelScale;
-            _renderTexture.name = $"{name} - RenderTexture";
+            _outputTexture.name = $"{name} - RenderTexture";
             _panelSettings.name = $"{name} - PanelSettings";
 
             // generate UIDocument
@@ -177,7 +166,7 @@ namespace Katas.Experimental
             else
                 _material = new Material(Shader.Find("Unlit/Texture"));
             
-            _material.SetTexture("_MainTex", _renderTexture);
+            _material.SetTexture("_MainTex", _outputTexture);
             _meshRenderer.sharedMaterial = _material;
 
             RefreshPanelSize();
@@ -189,7 +178,6 @@ namespace Katas.Experimental
 
             foreach (PanelEventHandler handler in handlers)
             {
-                Debug.Log("Event Hanlder: " + handler.transform.name);
                 
                 if (handler.panel == _uiDocument.rootVisualElement.panel)
                 {
@@ -207,12 +195,12 @@ namespace Katas.Experimental
 
         protected void RefreshPanelSize ()
         {
-            if (_renderTexture != null && (_renderTexture.width != _panelWidth || _renderTexture.height != _panelHeight))
+            if (_outputTexture != null && (_outputTexture.width != _panelWidth || _outputTexture.height != _panelHeight))
             {
-                _renderTexture.Release();
-                _renderTexture.width = _panelWidth;
-                _renderTexture.height = _panelHeight;
-                _renderTexture.Create();
+                _outputTexture.Release();
+                _outputTexture.width = _panelWidth;
+                _outputTexture.height = _panelHeight;
+                _outputTexture.Create();
 
                 if (_uiDocument != null)
                     _uiDocument.rootVisualElement?.MarkDirtyRepaint();
@@ -224,10 +212,37 @@ namespace Katas.Experimental
         protected void DestroyGeneratedAssets ()
         {
             if (_uiDocument) Destroy(_uiDocument);
-            if (_renderTexture) Destroy(_renderTexture);
+            if (_outputTexture) Destroy(_outputTexture);
             if (_panelSettings) Destroy(_panelSettings);
             if (_material) Destroy(_material);
         }
+
+		private void SetReferences(){
+			_meshRenderer = GetComponent<MeshRenderer>();
+			_meshFilter = GetComponent<MeshFilter>();
+			_boxCollider = GetComponent<BoxCollider>();
+			
+		}
+
+		private void Reset(){
+			SetReferences();
+            
+            _meshRenderer.sharedMaterial = null;
+            _meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            _meshRenderer.receiveShadows = false;
+            _meshRenderer.allowOcclusionWhenDynamic = false;
+            _meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+            _meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            _meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+
+            Vector3 size = _boxCollider.size;
+            size.z = 0;
+            _boxCollider.size = size;
+
+			GameObject quadGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            _meshFilter.sharedMesh = quadGo.GetComponent<MeshFilter>().sharedMesh;
+            Destroy(quadGo);
+		}
 
         void OnDestroy ()
         {
