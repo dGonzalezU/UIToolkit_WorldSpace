@@ -28,12 +28,19 @@ public class MyCustomUIDoc : WorldSpaceUIDocument
 * Reference the created UIDocument components in the UIToolkit Document values subsection
 
 
-
+<img src="img/Unity_tCSy6mgJ0U.png" alt="drawing" width="400"/>
 
 ## Notes
 
 * Panel Settings Determines the color of the background. To get a clear background set the Alpha to any value below 1.0f
 * The UI selection button can be changed in the XR Controller Components (XRInteraction/RayInteractor(LR)/XRController -> UI Press Usage)
+
+<img src="img/Unity_sfG2CUnYku.png" alt="drawing" width="400"/>
+
 * Scale does not affect the size of the World Scale Panels. The panel Width/Height and Pixels per unit do. There's a provided gizmo that will show the Runtime Size/Orientation of the panel. (Blue -> Forward)
+
+<img src="img/Unity_XQ0Nj7Egcm.png" alt="drawing" width="400"/>
+
+
 
 
