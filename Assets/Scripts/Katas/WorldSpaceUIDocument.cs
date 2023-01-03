@@ -4,6 +4,7 @@ using UnityEngine.UIElements;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using System;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace Katas.Experimental
 {
@@ -11,6 +12,7 @@ namespace Katas.Experimental
 	[RequireComponent(typeof(MeshFilter))]
 	[RequireComponent(typeof(MeshRenderer))]
 	[RequireComponent(typeof(BoxCollider))]
+	[RequireComponent(typeof(TrackedDevicePhysicsRaycaster))]
 	public class WorldSpaceUIDocument : MonoBehaviour, IPointerMoveHandler, IPointerUpHandler, IPointerDownHandler,
         ISubmitHandler, ICancelHandler, IMoveHandler, IScrollHandler, ISelectHandler, IDeselectHandler, IDragHandler
     {
