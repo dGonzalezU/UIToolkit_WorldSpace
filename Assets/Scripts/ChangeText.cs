@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Katas.Experimental;
 
 
-public class ChangeText : WorldSpaceUIDocument
+public class ChangeText : MonoBehaviour
 {
 
-	VisualElement rootVisualElement;
+	[SerializeField]
+	UIDocument _uiDocument;
 
 	Button _redButton;
 	Button _greenButton;
@@ -17,16 +17,18 @@ public class ChangeText : WorldSpaceUIDocument
 
 	Label _resultTabel;
 
-	protected override void Awake()
+
+	private void Start()
 	{
-		base.Awake();
-		OnPanelBuilt += SetupPanel;
+		//For Non World space canvas:
+		GetReferences();
+		SetEvents();
 	}
 
-	private void SetupPanel()
+	//For Worldspace canvas, this initialization depends on the worldspaceUIDocument event
+	public void SetupPanel(UIDocument doc)
 	{
-		Debug.Log($"Setting up Panel by sus", this);
-		rootVisualElement = _uiDocument.rootVisualElement;
+		_uiDocument = doc;
 		GetReferences();
 		SetEvents();
 	}
@@ -39,14 +41,16 @@ public class ChangeText : WorldSpaceUIDocument
 	}
 
 	private void GetReferences(){
-		_redButton 	= rootVisualElement.Q<Button>("redButton");
+		if(_uiDocument == null){
+			return;
+		}
+		_redButton 	= _uiDocument.rootVisualElement.Q<Button>("redButton");
 		_redButton.text = "Red";
-		_greenButton= rootVisualElement.Q<Button>("greenButton");
+		_greenButton= _uiDocument.rootVisualElement.Q<Button>("greenButton");
 		_greenButton.text = "Green";
-		_blueButton = rootVisualElement.Q<Button>("blueButton");
+		_blueButton = _uiDocument.rootVisualElement.Q<Button>("blueButton");
 		_blueButton.text = "Blue";
-
-		_resultTabel = rootVisualElement.Q<Label>("resultLabel");
+		_resultTabel = _uiDocument.rootVisualElement.Q<Label>("resultLabel");
 	}
 
 	private void SetLabelText(string text){

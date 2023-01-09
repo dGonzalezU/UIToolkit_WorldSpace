@@ -92,15 +92,16 @@ namespace Katas.Experimental
         protected RenderTexture _outputTexture;
         protected Material _material;
 
-		public event Action OnPanelBuilt;
+		public delegate void InitializeDocument(UIDocument document);
+		public event InitializeDocument OnPanelBuilt;
 
-		virtual protected void Awake ()
+		private void Awake ()
         {
             PixelsPerUnit = _pixelsPerUnit;
 			SetReferences();
         }
 
-		virtual protected void Start()
+		private void Start()
         {
             RebuildPanel();
         }
@@ -123,7 +124,7 @@ namespace Katas.Experimental
 
 		/// <summary>
 		/// Provides a Visual of the panel that will be instanced once the application enters runtime. The Cyan frame marks the forward
-		/// Cubes do not scale with the object scale since the UIDocument is instanced with pixels per meter
+		/// It accurately reflects the UI size, since LocalScale is not used to calculate it
 		/// </summary>
 		private void OnDrawGizmos()
 		{
@@ -186,12 +187,11 @@ namespace Katas.Experimental
                     PanelRaycaster panelRaycaster = _panelEventHandler.GetComponent<PanelRaycaster>();
                     if (panelRaycaster != null)
                         panelRaycaster.enabled = false;
-                    
                     break;
                 }
             }
 
-			OnPanelBuilt?.Invoke();
+			OnPanelBuilt?.Invoke(_uiDocument);
         }
 
         protected void RefreshPanelSize ()
