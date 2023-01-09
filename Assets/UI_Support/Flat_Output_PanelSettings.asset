@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19101, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: PanelSettings
+  m_Name: Flat_Output_PanelSettings
   m_EditorClassIdentifier: 
   themeUss: {fileID: -4733365628477956816, guid: 4a0a726b0f6b4eb4da18f32d835e7398, type: 3}
-  m_TargetTexture: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: a4709c5b61f3d6a469a90d037d30caa3, type: 2}
   m_ScaleMode: 0
   m_Scale: 1
   m_ReferenceDpi: 30.9

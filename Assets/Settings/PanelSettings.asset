@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: PanelSettings
   m_EditorClassIdentifier: 
   themeUss: {fileID: -4733365628477956816, guid: 7bdf57717457d664dafdc4186d42fcd0, type: 3}
-  m_TargetTexture: {fileID: 8400000, guid: a4709c5b61f3d6a469a90d037d30caa3, type: 2}
-  m_ScaleMode: 1
+  m_TargetTexture: {fileID: 0}
+  m_ScaleMode: 2
   m_Scale: 1
   m_ReferenceDpi: 96
   m_FallbackDpi: 96
